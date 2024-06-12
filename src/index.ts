@@ -3,12 +3,17 @@ import * as cheerio from "cheerio";
 /**
  * Register to the lecture
  * @param action - action to perform e.g (actionx:dla_stud/rejestracja/brdg2/zarejestruj(rej_kod:WPA-P-23@12f24L-S2;prz_kod:WPA-10.P-3181;cdyd_kod:23@12f24L;odczyt:0;prgos_id:591156;callback:g_b9044676)) - search devtools for it
+ * @param csrftoken - csrf token - (make "Zarejestuj" button clickable by removing hidden class in the DOM and then search for csrftoken in the request)
  */
-async function registerUsos(action: string, sessionCookie: string) {
+async function registerUsos(
+  action: string,
+  csrftoken: string,
+  sessionCookie: string
+) {
   const form = new FormData();
 
   form.append("_action", action);
-  form.append("csrftoken", "2024-02-16-32faa9399a34124e");
+  form.append("csrftoken", csrftoken);
   form.append("ajax", "1");
 
   // UJ example, change if needed
@@ -48,8 +53,8 @@ function parseUsos(html: string) {
   return $(".strong > td:nth-child(2)").text().trim(); // change if needed
 }
 
-async function main() {
-  const interval = setInterval(async () => {
+function main() {
+  setInterval(async () => {
     try {
       const htmlText = await fetchUsos(
         "https://www.usosweb.uj.edu.pl/kontroler.php?_action=dla_stud/rejestracja/brdg2/grupyPrzedmiotu&rej_kod=WPA-P-23%2F24L-S2&prz_kod=WPA-10.P-31811&cdyd_kod=23%2F24L&odczyt=1&callback=g_f11c9207",
@@ -62,7 +67,8 @@ async function main() {
       if (attendees !== "30") {
         const response = await registerUsos(
           "actionx:dla_stud/rejestracja/brdg2/zarejestruj(rej_kod:WPA-P-23@12f24L-S2;prz_kod:WPA-10.P-3181;cdyd_kod:23@12f24L;odczyt:0;prgos_id:591156;callback:g_b9044676)",
-          "sessionCookie"
+          "sessionCookie",
+          "csrftoken"
         );
         const json = JSON.parse(response);
         console.log(json.pl);
